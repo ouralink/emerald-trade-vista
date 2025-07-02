@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TrendingUp, PlusCircle, BarChart3, Calendar, List, Grid3X3, LogOut, MessageSquare } from "lucide-react";
+import { TrendingUp, PlusCircle, BarChart3, Calendar, List, Grid3X3, LogOut, MessageSquare, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import TradeForm from "@/components/TradeForm";
 import TradesList from "@/components/TradesList";
@@ -89,11 +89,18 @@ export default function Dashboard() {
                 <PlusCircle className="w-4 h-4 mr-2" />
                 New Trade
               </Button>
-              <Button variant="outline" className="border-gray-700 text-gray-300">
+              <Button 
+                onClick={() => navigate('/profile')}
+                className="bg-gray-700 hover:bg-gray-600 text-white border-gray-600"
+              >
+                <User className="w-4 h-4 mr-2" />
+                Profile
+              </Button>
+              <Button className="bg-gray-700 hover:bg-gray-600 text-white border-gray-600">
                 <MessageSquare className="w-4 h-4 mr-2" />
                 Messages
               </Button>
-              <Button variant="ghost" onClick={handleSignOut} className="text-gray-400 hover:text-white">
+              <Button onClick={handleSignOut} className="bg-gray-700 hover:bg-gray-600 text-white">
                 <LogOut className="w-4 h-4" />
               </Button>
             </div>
@@ -136,7 +143,7 @@ export default function Dashboard() {
                   variant={viewMode === 'list' ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setViewMode('list')}
-                  className={viewMode === 'list' ? 'bg-green-600' : 'border-gray-700'}
+                  className={viewMode === 'list' ? 'bg-green-600 text-black' : 'bg-gray-700 hover:bg-gray-600 text-white border-gray-600'}
                 >
                   <List className="w-4 h-4" />
                 </Button>
@@ -144,7 +151,7 @@ export default function Dashboard() {
                   variant={viewMode === 'card' ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setViewMode('card')}
-                  className={viewMode === 'card' ? 'bg-green-600' : 'border-gray-700'}
+                  className={viewMode === 'card' ? 'bg-green-600 text-black' : 'bg-gray-700 hover:bg-gray-600 text-white border-gray-600'}
                 >
                   <Grid3X3 className="w-4 h-4" />
                 </Button>
@@ -152,7 +159,7 @@ export default function Dashboard() {
                   variant={viewMode === 'calendar' ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setViewMode('calendar')}
-                  className={viewMode === 'calendar' ? 'bg-green-600' : 'border-gray-700'}
+                  className={viewMode === 'calendar' ? 'bg-green-600 text-black' : 'bg-gray-700 hover:bg-gray-600 text-white border-gray-600'}
                 >
                   <Calendar className="w-4 h-4" />
                 </Button>

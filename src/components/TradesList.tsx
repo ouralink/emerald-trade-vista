@@ -140,8 +140,7 @@ export default function TradesList({ viewMode }: TradesListProps) {
           {trade.status === 'open' && (
             <Button
               size="sm"
-              variant="outline"
-              className="border-red-500 text-red-400 hover:bg-red-500 hover:text-white"
+              className="bg-red-600 hover:bg-red-700 text-white"
               onClick={() => {
                 const exitPrice = prompt('Enter exit price:');
                 if (exitPrice) closeTrade(trade.id, parseFloat(exitPrice));
@@ -173,7 +172,7 @@ export default function TradesList({ viewMode }: TradesListProps) {
             <div>
               <span className="text-gray-400">P&L:</span>
               <p className={`font-semibold ${trade.pnl >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                {trade.pnl >= 0 ? '+' : ''}{trade.pnl.toFixed(2)}
+                {trade.pnl >= 0 ? '+' : ''}${trade.pnl.toFixed(2)}
               </p>
             </div>
           )}
