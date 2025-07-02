@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TrendingUp, PlusCircle, BarChart3, Calendar, List, Grid3X3, LogOut, MessageSquare, User } from "lucide-react";
+import { TrendingUp, PlusCircle, BarChart3, Calendar, List, Grid3X3, LogOut, MessageSquare, User as UserIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import TradeForm from "@/components/TradeForm";
 import TradesList from "@/components/TradesList";
@@ -93,7 +93,7 @@ export default function Dashboard() {
                 onClick={() => navigate('/profile')}
                 className="bg-gray-700 hover:bg-gray-600 text-white border-gray-600"
               >
-                <User className="w-4 h-4 mr-2" />
+                <UserIcon className="w-4 h-4 mr-2" />
                 Profile
               </Button>
               <Button className="bg-gray-700 hover:bg-gray-600 text-white border-gray-600">

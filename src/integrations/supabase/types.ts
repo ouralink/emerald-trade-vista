@@ -158,6 +158,7 @@ export type Database = {
           tags: string[] | null
           take_profit: number | null
           trade_type: Database["public"]["Enums"]["trade_type"]
+          trading_account_id: string | null
           updated_at: string | null
           user_id: string | null
         }
@@ -178,6 +179,7 @@ export type Database = {
           tags?: string[] | null
           take_profit?: number | null
           trade_type: Database["public"]["Enums"]["trade_type"]
+          trading_account_id?: string | null
           updated_at?: string | null
           user_id?: string | null
         }
@@ -198,7 +200,52 @@ export type Database = {
           tags?: string[] | null
           take_profit?: number | null
           trade_type?: Database["public"]["Enums"]["trade_type"]
+          trading_account_id?: string | null
           updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trades_trading_account_id_fkey"
+            columns: ["trading_account_id"]
+            isOneToOne: false
+            referencedRelation: "trading_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trading_accounts: {
+        Row: {
+          account_name: string
+          account_type: string
+          broker: string
+          created_at: string | null
+          current_balance: number
+          id: string
+          initial_balance: number
+          is_active: boolean | null
+          user_id: string | null
+        }
+        Insert: {
+          account_name: string
+          account_type: string
+          broker: string
+          created_at?: string | null
+          current_balance?: number
+          id?: string
+          initial_balance: number
+          is_active?: boolean | null
+          user_id?: string | null
+        }
+        Update: {
+          account_name?: string
+          account_type?: string
+          broker?: string
+          created_at?: string | null
+          current_balance?: number
+          id?: string
+          initial_balance?: number
+          is_active?: boolean | null
           user_id?: string | null
         }
         Relationships: []
