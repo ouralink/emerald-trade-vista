@@ -46,6 +46,11 @@ export default function Landing() {
           </span>
         </div>
         <div className="flex items-center space-x-4">
+          <Link to="/dashboard">
+            <Button variant="outline" className="border-green-500 text-green-400 hover:bg-green-500 hover:text-black">
+              Dashboard
+            </Button>
+          </Link>
           <Link to="/auth">
             <Button variant="outline" className="border-green-500 text-green-400 hover:bg-green-500 hover:text-black">
               Sign In

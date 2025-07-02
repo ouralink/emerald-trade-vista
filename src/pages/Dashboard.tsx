@@ -5,18 +5,25 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TrendingUp, PlusCircle, BarChart3, Calendar, List, Grid3X3, LogOut, MessageSquare, User as UserIcon } from "lucide-react";
+import { TrendingUp, PlusCircle, BarChart3, Calendar, List, Grid3X3, LogOut, MessageSquare, User as UserIcon, Settings } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import TradeForm from "@/components/TradeForm";
 import TradesList from "@/components/TradesList";
 import TradingMetrics from "@/components/TradingMetrics";
 import MoodTracker from "@/components/MoodTracker";
+import MessageCenter from "@/components/MessageCenter";
+import AdminSettings from "@/components/AdminSettings";
+import MoodPrompt from "@/components/MoodPrompt";
 import type { User } from "@supabase/supabase-js";
 
 export default function Dashboard() {
   const [user, setUser] = useState<User | null>(null);
+  const [userProfile, setUserProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showTradeForm, setShowTradeForm] = useState(false);
+  const [showMessages, setShowMessages] = useState(false);
+  const [showAdminSettings, setShowAdminSettings] = useState(false);
+  const [showMoodPrompt, setShowMoodPrompt] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'card' | 'calendar'>('list');
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -28,6 +35,21 @@ export default function Dashboard() {
         navigate("/auth");
       } else {
         setUser(user);
+        
+        // Fetch user profile to check role
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+        
+        setUserProfile(profile);
+        
+        // Auto-redirect admin to admin panel
+        if (profile?.role === 'admin') {
+          navigate('/admin');
+          return;
+        }
       }
       setLoading(false);
     };
@@ -66,6 +88,14 @@ export default function Dashboard() {
     );
   }
 
+  if (showMessages) {
+    return <MessageCenter onBack={() => setShowMessages(false)} />;
+  }
+
+  if (showAdminSettings) {
+    return <AdminSettings onBack={() => setShowAdminSettings(false)} />;
+  }
+
   return (
     <div className="min-h-screen bg-black text-white">
       {/* Header */}
@@ -96,10 +126,22 @@ export default function Dashboard() {
                 <UserIcon className="w-4 h-4 mr-2" />
                 Profile
               </Button>
-              <Button className="bg-gray-700 hover:bg-gray-600 text-white border-gray-600">
+              <Button 
+                onClick={() => setShowMessages(true)}
+                className="bg-gray-700 hover:bg-gray-600 text-white border-gray-600"
+              >
                 <MessageSquare className="w-4 h-4 mr-2" />
                 Messages
               </Button>
+              {userProfile?.role === 'admin' && (
+                <Button 
+                  onClick={() => setShowAdminSettings(true)}
+                  className="bg-gray-700 hover:bg-gray-600 text-white border-gray-600"
+                >
+                  <Settings className="w-4 h-4 mr-2" />
+                  Settings
+                </Button>
+              )}
               <Button onClick={handleSignOut} className="bg-gray-700 hover:bg-gray-600 text-white">
                 <LogOut className="w-4 h-4" />
               </Button>
@@ -182,6 +224,21 @@ export default function Dashboard() {
           onClose={() => setShowTradeForm(false)}
         />
       )}
+      {/* Message Center */}
+      {showMessages && (
+        <MessageCenter onBack={() => setShowMessages(false)} />
+      )}
+
+      {/* Admin Settings */}
+      {showAdminSettings && (
+        <AdminSettings onBack={() => setShowAdminSettings(false)} />
+      )}
+
+      {/* Mood Prompt */}
+      <MoodPrompt 
+        isOpen={showMoodPrompt}
+        onClose={() => setShowMoodPrompt(false)}
+      />
     </div>
   );
 }

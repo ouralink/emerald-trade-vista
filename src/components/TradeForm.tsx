@@ -10,12 +10,31 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Upload, Link2, X } from "lucide-react";
 
-const forexPairs = [
-  'EURUSD', 'GBPUSD', 'USDJPY', 'USDCHF', 'AUDUSD', 'USDCAD', 'NZDUSD',
-  'EURJPY', 'GBPJPY', 'EURGBP', 'AUDJPY', 'EURAUD', 'EURCHF', 'AUDNZD',
-  'NZDJPY', 'GBPAUD', 'GBPCAD', 'EURNZD', 'AUDCAD', 'GBPCHF', 'EURJPY',
-  'CADCHF', 'CADJPY', 'AUDCHF', 'NZDCAD', 'NZDCHF'
-];
+const marketData = {
+  forex: [
+    'EURUSD', 'GBPUSD', 'USDJPY', 'USDCHF', 'AUDUSD', 'USDCAD', 'NZDUSD',
+    'EURJPY', 'GBPJPY', 'EURGBP', 'AUDJPY', 'EURAUD', 'EURCHF', 'AUDNZD',
+    'NZDJPY', 'GBPAUD', 'GBPCAD', 'EURNZD', 'AUDCAD', 'GBPCHF',
+    'CADCHF', 'CADJPY', 'AUDCHF', 'NZDCAD', 'NZDCHF'
+  ],
+  stocks: [
+    'AAPL', 'MSFT', 'AMZN', 'GOOGL', 'TSLA', 'META', 'NVDA', 'BRK.B',
+    'UNH', 'JNJ', 'V', 'PG', 'JPM', 'HD', 'CVX', 'MA', 'BAC', 'ABBV',
+    'PFE', 'AVGO', 'KO', 'TMO', 'COST', 'PEP', 'MRK', 'WMT', 'DHR'
+  ],
+  commodities: [
+    'XAUUSD', 'XAGUSD', 'USOIL', 'UKOIL', 'NATGAS', 'COPPER', 'PLATINUM',
+    'PALLADIUM', 'CORN', 'WHEAT', 'SOYBEANS', 'COTTON', 'SUGAR', 'COFFEE'
+  ],
+  indices: [
+    'SPX500', 'NAS100', 'DJ30', 'UK100', 'GER40', 'FRA40', 'ESP35',
+    'ITA40', 'JPN225', 'AUS200', 'HK50', 'CHINA50', 'VIX'
+  ],
+  crypto: [
+    'BTCUSD', 'ETHUSD', 'BNBUSD', 'ADAUSD', 'SOLUSD', 'XRPUSD', 'DOTUSD',
+    'DOGEUSD', 'AVAXUSD', 'MATICUSD', 'LINKUSD', 'LTCUSD', 'UNIUSD'
+  ]
+};
 
 interface TradeFormProps {
   isOpen: boolean;
@@ -32,6 +51,7 @@ export default function TradeForm({ isOpen, onClose }: TradeFormProps) {
     take_profit: '',
     notes: '',
     tags: '',
+    market_type: 'forex',
   });
   const [screenshots, setScreenshots] = useState<string[]>([]);
   const [imageUrl, setImageUrl] = useState('');
@@ -70,7 +90,7 @@ export default function TradeForm({ isOpen, onClose }: TradeFormProps) {
       // Reset form
       setFormData({
         pair: '', trade_type: '', entry_price: '', lot_size: '',
-        stop_loss: '', take_profit: '', notes: '', tags: ''
+        stop_loss: '', take_profit: '', notes: '', tags: '', market_type: 'forex'
       });
       setScreenshots([]);
     } catch (error: any) {
@@ -139,15 +159,31 @@ export default function TradeForm({ isOpen, onClose }: TradeFormProps) {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="pair">Currency Pair</Label>
-              <Select value={formData.pair} onValueChange={(value) => setFormData({...formData, pair: value})}>
+              <Label htmlFor="market_type">Market Type</Label>
+              <Select value={formData.market_type} onValueChange={(value) => setFormData({...formData, market_type: value, pair: ''})}>
                 <SelectTrigger className="bg-gray-800 border-gray-700">
-                  <SelectValue placeholder="Select pair" />
+                  <SelectValue placeholder="Select market" />
                 </SelectTrigger>
                 <SelectContent className="bg-gray-800 border-gray-700">
-                  {forexPairs.map((pair) => (
-                    <SelectItem key={pair} value={pair} className="text-white">
-                      {pair}
+                  <SelectItem value="forex" className="text-white">Forex</SelectItem>
+                  <SelectItem value="stocks" className="text-white">Stocks</SelectItem>
+                  <SelectItem value="commodities" className="text-white">Commodities</SelectItem>
+                  <SelectItem value="indices" className="text-white">Indices</SelectItem>
+                  <SelectItem value="crypto" className="text-white">Crypto</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="pair">{formData.market_type === 'forex' ? 'Currency Pair' : 'Symbol'}</Label>
+              <Select value={formData.pair} onValueChange={(value) => setFormData({...formData, pair: value})}>
+                <SelectTrigger className="bg-gray-800 border-gray-700">
+                  <SelectValue placeholder={`Select ${formData.market_type} symbol`} />
+                </SelectTrigger>
+                <SelectContent className="bg-gray-800 border-gray-700">
+                  {marketData[formData.market_type as keyof typeof marketData]?.map((symbol) => (
+                    <SelectItem key={`${formData.market_type}-${symbol}`} value={symbol} className="text-white">
+                      {symbol}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -182,12 +218,18 @@ export default function TradeForm({ isOpen, onClose }: TradeFormProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="lot_size">Lot Size</Label>
+              <Label htmlFor="lot_size">
+                {formData.market_type === 'forex' ? 'Lot Size' : 
+                 formData.market_type === 'stocks' ? 'Shares' : 
+                 formData.market_type === 'crypto' ? 'Amount' : 'Size'}
+              </Label>
               <Input
                 id="lot_size"
                 type="number"
-                step="0.01"
-                placeholder="0.10"
+                step={formData.market_type === 'stocks' ? '1' : '0.01'}
+                placeholder={formData.market_type === 'forex' ? '0.10' : 
+                           formData.market_type === 'stocks' ? '100' : 
+                           formData.market_type === 'crypto' ? '0.01' : '1'}
                 value={formData.lot_size}
                 onChange={(e) => setFormData({...formData, lot_size: e.target.value})}
                 className="bg-gray-800 border-gray-700"
