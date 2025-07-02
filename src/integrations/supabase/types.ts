@@ -9,7 +9,242 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      dashboard_requests: {
+        Row: {
+          created_at: string | null
+          id: string
+          reason: string | null
+          request_type: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["request_status"] | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          reason?: string | null
+          request_type: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["request_status"] | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          reason?: string | null
+          request_type?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["request_status"] | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      messages: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          receiver_id: string | null
+          sender_id: string | null
+          subject: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          receiver_id?: string | null
+          sender_id?: string | null
+          subject?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          receiver_id?: string | null
+          sender_id?: string | null
+          subject?: string | null
+        }
+        Relationships: []
+      }
+      mood_entries: {
+        Row: {
+          confidence_level: number | null
+          created_at: string | null
+          id: string
+          mood: Database["public"]["Enums"]["mood_type"]
+          notes: string | null
+          trade_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          confidence_level?: number | null
+          created_at?: string | null
+          id?: string
+          mood: Database["public"]["Enums"]["mood_type"]
+          notes?: string | null
+          trade_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          confidence_level?: number | null
+          created_at?: string | null
+          id?: string
+          mood?: Database["public"]["Enums"]["mood_type"]
+          notes?: string | null
+          trade_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mood_entries_trade_id_fkey"
+            columns: ["trade_id"]
+            isOneToOne: false
+            referencedRelation: "trades"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          email: string | null
+          id: string
+          role: Database["public"]["Enums"]["user_role"] | null
+          updated_at: string | null
+          username: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string | null
+          id: string
+          role?: Database["public"]["Enums"]["user_role"] | null
+          updated_at?: string | null
+          username?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["user_role"] | null
+          updated_at?: string | null
+          username?: string | null
+        }
+        Relationships: []
+      }
+      trades: {
+        Row: {
+          closed_at: string | null
+          created_at: string | null
+          entry_price: number
+          exit_price: number | null
+          id: string
+          lot_size: number
+          notes: string | null
+          opened_at: string | null
+          pair: string
+          pnl: number | null
+          screenshot_urls: string[] | null
+          status: Database["public"]["Enums"]["trade_status"] | null
+          stop_loss: number | null
+          tags: string[] | null
+          take_profit: number | null
+          trade_type: Database["public"]["Enums"]["trade_type"]
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          closed_at?: string | null
+          created_at?: string | null
+          entry_price: number
+          exit_price?: number | null
+          id?: string
+          lot_size: number
+          notes?: string | null
+          opened_at?: string | null
+          pair: string
+          pnl?: number | null
+          screenshot_urls?: string[] | null
+          status?: Database["public"]["Enums"]["trade_status"] | null
+          stop_loss?: number | null
+          tags?: string[] | null
+          take_profit?: number | null
+          trade_type: Database["public"]["Enums"]["trade_type"]
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          closed_at?: string | null
+          created_at?: string | null
+          entry_price?: number
+          exit_price?: number | null
+          id?: string
+          lot_size?: number
+          notes?: string | null
+          opened_at?: string | null
+          pair?: string
+          pnl?: number | null
+          screenshot_urls?: string[] | null
+          status?: Database["public"]["Enums"]["trade_status"] | null
+          stop_loss?: number | null
+          tags?: string[] | null
+          take_profit?: number | null
+          trade_type?: Database["public"]["Enums"]["trade_type"]
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      trading_strategies: {
+        Row: {
+          avg_pnl: number | null
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          rules: string[] | null
+          total_trades: number | null
+          updated_at: string | null
+          user_id: string | null
+          win_rate: number | null
+        }
+        Insert: {
+          avg_pnl?: number | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          rules?: string[] | null
+          total_trades?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+          win_rate?: number | null
+        }
+        Update: {
+          avg_pnl?: number | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          rules?: string[] | null
+          total_trades?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+          win_rate?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -18,7 +253,11 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      mood_type: "confident" | "neutral" | "anxious" | "excited" | "frustrated"
+      request_status: "pending" | "approved" | "rejected"
+      trade_status: "open" | "closed"
+      trade_type: "buy" | "sell"
+      user_role: "user" | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -133,6 +372,12 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      mood_type: ["confident", "neutral", "anxious", "excited", "frustrated"],
+      request_status: ["pending", "approved", "rejected"],
+      trade_status: ["open", "closed"],
+      trade_type: ["buy", "sell"],
+      user_role: ["user", "admin"],
+    },
   },
 } as const
