@@ -44,12 +44,6 @@ export default function Dashboard() {
           .single();
         
         setUserProfile(profile);
-        
-        // Auto-redirect admin to admin panel
-        if (profile?.role === 'admin') {
-          navigate('/admin');
-          return;
-        }
       }
       setLoading(false);
     };
