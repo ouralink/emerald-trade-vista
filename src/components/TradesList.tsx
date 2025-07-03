@@ -4,9 +4,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, TrendingUp, TrendingDown, Clock, X } from "lucide-react";
+import { Calendar, TrendingUp, TrendingDown, Clock, X, Edit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import EditTradeForm from "./EditTradeForm";
+import { useTwelveDataUpdates } from "@/hooks/useTwelveDataUpdates";
 
 interface Trade {
   id: string;
@@ -33,7 +35,12 @@ interface TradesListProps {
 export default function TradesList({ viewMode }: TradesListProps) {
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingTrade, setEditingTrade] = useState<Trade | null>(null);
+  const [showEditForm, setShowEditForm] = useState(false);
   const { toast } = useToast();
+  
+  // Initialize TwelveData updates
+  useTwelveDataUpdates();
 
   useEffect(() => {
     fetchTrades();
@@ -100,6 +107,17 @@ export default function TradesList({ viewMode }: TradesListProps) {
     }
   };
 
+  const handleEditTrade = (trade: Trade) => {
+    setEditingTrade(trade);
+    setShowEditForm(true);
+  };
+
+  const handleTradeUpdated = () => {
+    fetchTrades();
+    setShowEditForm(false);
+    setEditingTrade(null);
+  };
+
   if (loading) {
     return <div className="text-center text-gray-400">Loading trades...</div>;
   }
@@ -137,19 +155,30 @@ export default function TradesList({ viewMode }: TradesListProps) {
               </Badge>
             </div>
           </div>
-          {trade.status === 'open' && (
+          <div className="flex gap-2">
             <Button
               size="sm"
-              className="bg-red-600 hover:bg-red-700 text-white"
-              onClick={() => {
-                const exitPrice = prompt('Enter exit price:');
-                if (exitPrice) closeTrade(trade.id, parseFloat(exitPrice));
-              }}
+              variant="outline"
+              className="border-gray-600 text-white hover:bg-gray-700"
+              onClick={() => handleEditTrade(trade)}
             >
-              <X className="w-4 h-4 mr-1" />
-              Close
+              <Edit className="w-4 h-4 mr-1" />
+              Edit
             </Button>
-          )}
+            {trade.status === 'open' && (
+              <Button
+                size="sm"
+                className="bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700"
+                onClick={() => {
+                  const exitPrice = prompt('Enter exit price:');
+                  if (exitPrice) closeTrade(trade.id, parseFloat(exitPrice));
+                }}
+              >
+                <X className="w-4 h-4 mr-1" />
+                Close
+              </Button>
+            )}
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -248,6 +277,14 @@ export default function TradesList({ viewMode }: TradesListProps) {
       {trades.map((trade) => (
         <TradeCard key={trade.id} trade={trade} />
       ))}
+      
+      {/* Edit Trade Modal */}
+      <EditTradeForm
+        isOpen={showEditForm}
+        onClose={() => setShowEditForm(false)}
+        trade={editingTrade}
+        onTradeUpdated={handleTradeUpdated}
+      />
     </div>
   );
 }

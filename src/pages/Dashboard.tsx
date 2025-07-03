@@ -14,6 +14,7 @@ import MoodTracker from "@/components/MoodTracker";
 import MessageCenter from "@/components/MessageCenter";
 import AdminSettings from "@/components/AdminSettings";
 import MoodPrompt from "@/components/MoodPrompt";
+import APIKeySetup from "@/components/APIKeySetup";
 import type { User } from "@supabase/supabase-js";
 
 export default function Dashboard() {
@@ -115,28 +116,35 @@ export default function Dashboard() {
               </Button>
               <Button 
                 onClick={() => navigate('/profile')}
-                className="bg-gray-700 hover:bg-gray-600 text-white border-gray-600"
+                className="bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 text-white"
               >
                 <UserIcon className="w-4 h-4 mr-2" />
                 Profile
               </Button>
               <Button 
                 onClick={() => setShowMessages(true)}
-                className="bg-gray-700 hover:bg-gray-600 text-white border-gray-600"
+                className="bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 text-white"
               >
                 <MessageSquare className="w-4 h-4 mr-2" />
                 Messages
               </Button>
+              <Button 
+                onClick={() => navigate('/analytics')}
+                className="bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 text-white"
+              >
+                <BarChart3 className="w-4 h-4 mr-2" />
+                Analytics
+              </Button>
               {userProfile?.role === 'admin' && (
                 <Button 
                   onClick={() => setShowAdminSettings(true)}
-                  className="bg-gray-700 hover:bg-gray-600 text-white border-gray-600"
+                  className="bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 text-white"
                 >
                   <Settings className="w-4 h-4 mr-2" />
                   Settings
                 </Button>
               )}
-              <Button onClick={handleSignOut} className="bg-gray-700 hover:bg-gray-600 text-white">
+              <Button onClick={handleSignOut} className="bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 text-white">
                 <LogOut className="w-4 h-4" />
               </Button>
             </div>
@@ -168,6 +176,7 @@ export default function Dashboard() {
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
+            <APIKeySetup />
             <TradingMetrics />
           </TabsContent>
 
@@ -179,7 +188,7 @@ export default function Dashboard() {
                   variant={viewMode === 'list' ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setViewMode('list')}
-                  className={viewMode === 'list' ? 'bg-green-600 text-black' : 'bg-gray-700 hover:bg-gray-600 text-white border-gray-600'}
+                  className={viewMode === 'list' ? 'bg-gradient-to-r from-green-500 to-emerald-400 text-black' : 'bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 text-white'}
                 >
                   <List className="w-4 h-4" />
                 </Button>
@@ -187,7 +196,7 @@ export default function Dashboard() {
                   variant={viewMode === 'card' ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setViewMode('card')}
-                  className={viewMode === 'card' ? 'bg-green-600 text-black' : 'bg-gray-700 hover:bg-gray-600 text-white border-gray-600'}
+                  className={viewMode === 'card' ? 'bg-gradient-to-r from-green-500 to-emerald-400 text-black' : 'bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 text-white'}
                 >
                   <Grid3X3 className="w-4 h-4" />
                 </Button>
@@ -195,7 +204,7 @@ export default function Dashboard() {
                   variant={viewMode === 'calendar' ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setViewMode('calendar')}
-                  className={viewMode === 'calendar' ? 'bg-green-600 text-black' : 'bg-gray-700 hover:bg-gray-600 text-white border-gray-600'}
+                  className={viewMode === 'calendar' ? 'bg-gradient-to-r from-green-500 to-emerald-400 text-black' : 'bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 text-white'}
                 >
                   <Calendar className="w-4 h-4" />
                 </Button>

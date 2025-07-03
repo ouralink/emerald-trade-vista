@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,64 +9,71 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Upload, Link2, X } from "lucide-react";
 
-const marketData = {
-  forex: [
-    'EURUSD', 'GBPUSD', 'USDJPY', 'USDCHF', 'AUDUSD', 'USDCAD', 'NZDUSD',
-    'EURJPY', 'GBPJPY', 'EURGBP', 'AUDJPY', 'EURAUD', 'EURCHF', 'AUDNZD',
-    'NZDJPY', 'GBPAUD', 'GBPCAD', 'EURNZD', 'AUDCAD', 'GBPCHF',
-    'CADCHF', 'CADJPY', 'AUDCHF', 'NZDCAD', 'NZDCHF'
-  ],
-  stocks: [
-    'AAPL', 'MSFT', 'AMZN', 'GOOGL', 'TSLA', 'META', 'NVDA', 'BRK.B',
-    'UNH', 'JNJ', 'V', 'PG', 'JPM', 'HD', 'CVX', 'MA', 'BAC', 'ABBV',
-    'PFE', 'AVGO', 'KO', 'TMO', 'COST', 'PEP', 'MRK', 'WMT', 'DHR'
-  ],
-  commodities: [
-    'XAUUSD', 'XAGUSD', 'USOIL', 'UKOIL', 'NATGAS', 'COPPER', 'PLATINUM',
-    'PALLADIUM', 'CORN', 'WHEAT', 'SOYBEANS', 'COTTON', 'SUGAR', 'COFFEE'
-  ],
-  indices: [
-    'SPX500', 'NAS100', 'DJ30', 'UK100', 'GER40', 'FRA40', 'ESP35',
-    'ITA40', 'JPN225', 'AUS200', 'HK50', 'CHINA50', 'VIX'
-  ],
-  crypto: [
-    'BTCUSD', 'ETHUSD', 'BNBUSD', 'ADAUSD', 'SOLUSD', 'XRPUSD', 'DOTUSD',
-    'DOGEUSD', 'AVAXUSD', 'MATICUSD', 'LINKUSD', 'LTCUSD', 'UNIUSD'
-  ]
-};
-
-interface TradeFormProps {
-  isOpen: boolean;
-  onClose: () => void;
+interface Trade {
+  id: string;
+  pair: string;
+  trade_type: 'buy' | 'sell';
+  entry_price: number;
+  exit_price?: number;
+  lot_size: number;
+  stop_loss?: number;
+  take_profit?: number;
+  status: 'open' | 'closed';
+  pnl?: number;
+  notes?: string;
+  tags?: string[];
+  screenshot_urls?: string[];
 }
 
-export default function TradeForm({ isOpen, onClose }: TradeFormProps) {
+interface EditTradeFormProps {
+  isOpen: boolean;
+  onClose: () => void;
+  trade: Trade | null;
+  onTradeUpdated: () => void;
+}
+
+export default function EditTradeForm({ isOpen, onClose, trade, onTradeUpdated }: EditTradeFormProps) {
   const [formData, setFormData] = useState({
     pair: '',
     trade_type: '',
     entry_price: '',
+    exit_price: '',
     lot_size: '',
     stop_loss: '',
     take_profit: '',
     notes: '',
     tags: '',
-    market_type: 'forex',
   });
   const [screenshots, setScreenshots] = useState<string[]>([]);
   const [imageUrl, setImageUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
+  useEffect(() => {
+    if (trade) {
+      setFormData({
+        pair: trade.pair,
+        trade_type: trade.trade_type,
+        entry_price: trade.entry_price.toString(),
+        exit_price: trade.exit_price?.toString() || '',
+        lot_size: trade.lot_size.toString(),
+        stop_loss: trade.stop_loss?.toString() || '',
+        take_profit: trade.take_profit?.toString() || '',
+        notes: trade.notes || '',
+        tags: trade.tags?.join(', ') || '',
+      });
+      setScreenshots(trade.screenshot_urls || []);
+    }
+  }, [trade]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!trade) return;
+    
     setLoading(true);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
-
-      const { error } = await supabase.from('trades').insert({
-        user_id: user.id,
+      const updateData: any = {
         pair: formData.pair,
         trade_type: formData.trade_type as 'buy' | 'sell',
         entry_price: parseFloat(formData.entry_price),
@@ -77,22 +83,41 @@ export default function TradeForm({ isOpen, onClose }: TradeFormProps) {
         notes: formData.notes || null,
         tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()) : null,
         screenshot_urls: screenshots.length > 0 ? screenshots : null,
-      });
+      };
+
+      // If exit price is provided and trade is open, close the trade
+      if (formData.exit_price && trade.status === 'open') {
+        const exitPrice = parseFloat(formData.exit_price);
+        const entryPrice = parseFloat(formData.entry_price);
+        const lotSize = parseFloat(formData.lot_size);
+        
+        let pnl;
+        if (formData.trade_type === 'buy') {
+          pnl = (exitPrice - entryPrice) * lotSize * 100000;
+        } else {
+          pnl = (entryPrice - exitPrice) * lotSize * 100000;
+        }
+
+        updateData.exit_price = exitPrice;
+        updateData.pnl = pnl;
+        updateData.status = 'closed';
+        updateData.closed_at = new Date().toISOString();
+      }
+
+      const { error } = await supabase
+        .from('trades')
+        .update(updateData)
+        .eq('id', trade.id);
 
       if (error) throw error;
 
       toast({
-        title: "Trade added successfully!",
-        description: "Your trade has been logged in the journal.",
+        title: "Trade updated successfully!",
+        description: "Your changes have been saved.",
       });
 
+      onTradeUpdated();
       onClose();
-      // Reset form
-      setFormData({
-        pair: '', trade_type: '', entry_price: '', lot_size: '',
-        stop_loss: '', take_profit: '', notes: '', tags: '', market_type: 'forex'
-      });
-      setScreenshots([]);
     } catch (error: any) {
       toast({
         title: "Error",
@@ -149,45 +174,26 @@ export default function TradeForm({ isOpen, onClose }: TradeFormProps) {
     setScreenshots(screenshots.filter((_, i) => i !== index));
   };
 
+  if (!trade) return null;
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="bg-gray-900 border-gray-800 text-white max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-green-400">Add New Trade</DialogTitle>
+          <DialogTitle className="text-green-400">Edit Trade</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="market_type">Market Type</Label>
-              <Select value={formData.market_type} onValueChange={(value) => setFormData({...formData, market_type: value, pair: ''})}>
-                <SelectTrigger className="bg-gray-800 border-gray-700">
-                  <SelectValue placeholder="Select market" />
-                </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-gray-700">
-                  <SelectItem value="forex" className="text-white">Forex</SelectItem>
-                  <SelectItem value="stocks" className="text-white">Stocks</SelectItem>
-                  <SelectItem value="commodities" className="text-white">Commodities</SelectItem>
-                  <SelectItem value="indices" className="text-white">Indices</SelectItem>
-                  <SelectItem value="crypto" className="text-white">Crypto</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="pair">{formData.market_type === 'forex' ? 'Currency Pair' : 'Symbol'}</Label>
-              <Select value={formData.pair} onValueChange={(value) => setFormData({...formData, pair: value})}>
-                <SelectTrigger className="bg-gray-800 border-gray-700">
-                  <SelectValue placeholder={`Select ${formData.market_type} symbol`} />
-                </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-gray-700">
-                  {marketData[formData.market_type as keyof typeof marketData]?.map((symbol) => (
-                    <SelectItem key={`${formData.market_type}-${symbol}`} value={symbol} className="text-white">
-                      {symbol}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label htmlFor="pair">Pair</Label>
+              <Input
+                id="pair"
+                value={formData.pair}
+                onChange={(e) => setFormData({...formData, pair: e.target.value})}
+                className="bg-gray-800 border-gray-700"
+                required
+              />
             </div>
 
             <div className="space-y-2">
@@ -209,7 +215,6 @@ export default function TradeForm({ isOpen, onClose }: TradeFormProps) {
                 id="entry_price"
                 type="number"
                 step="0.00001"
-                placeholder="1.23456"
                 value={formData.entry_price}
                 onChange={(e) => setFormData({...formData, entry_price: e.target.value})}
                 className="bg-gray-800 border-gray-700"
@@ -218,18 +223,24 @@ export default function TradeForm({ isOpen, onClose }: TradeFormProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="lot_size">
-                {formData.market_type === 'forex' ? 'Lot Size' : 
-                 formData.market_type === 'stocks' ? 'Shares' : 
-                 formData.market_type === 'crypto' ? 'Amount' : 'Size'}
-              </Label>
+              <Label htmlFor="exit_price">Exit Price {trade.status === 'open' ? '(Optional)' : ''}</Label>
+              <Input
+                id="exit_price"
+                type="number"
+                step="0.00001"
+                value={formData.exit_price}
+                onChange={(e) => setFormData({...formData, exit_price: e.target.value})}
+                className="bg-gray-800 border-gray-700"
+                disabled={trade.status === 'closed'}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="lot_size">Lot Size</Label>
               <Input
                 id="lot_size"
                 type="number"
-                step={formData.market_type === 'stocks' ? '1' : '0.01'}
-                placeholder={formData.market_type === 'forex' ? '0.10' : 
-                           formData.market_type === 'stocks' ? '100' : 
-                           formData.market_type === 'crypto' ? '0.01' : '1'}
+                step="0.01"
                 value={formData.lot_size}
                 onChange={(e) => setFormData({...formData, lot_size: e.target.value})}
                 className="bg-gray-800 border-gray-700"
@@ -238,12 +249,11 @@ export default function TradeForm({ isOpen, onClose }: TradeFormProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="stop_loss">Stop Loss (Optional)</Label>
+              <Label htmlFor="stop_loss">Stop Loss</Label>
               <Input
                 id="stop_loss"
                 type="number"
                 step="0.00001"
-                placeholder="1.20000"
                 value={formData.stop_loss}
                 onChange={(e) => setFormData({...formData, stop_loss: e.target.value})}
                 className="bg-gray-800 border-gray-700"
@@ -251,12 +261,11 @@ export default function TradeForm({ isOpen, onClose }: TradeFormProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="take_profit">Take Profit (Optional)</Label>
+              <Label htmlFor="take_profit">Take Profit</Label>
               <Input
                 id="take_profit"
                 type="number"
                 step="0.00001"
-                placeholder="1.25000"
                 value={formData.take_profit}
                 onChange={(e) => setFormData({...formData, take_profit: e.target.value})}
                 className="bg-gray-800 border-gray-700"
@@ -268,7 +277,6 @@ export default function TradeForm({ isOpen, onClose }: TradeFormProps) {
             <Label htmlFor="tags">Tags (comma separated)</Label>
             <Input
               id="tags"
-              placeholder="scalp, news, breakout"
               value={formData.tags}
               onChange={(e) => setFormData({...formData, tags: e.target.value})}
               className="bg-gray-800 border-gray-700"
@@ -279,7 +287,6 @@ export default function TradeForm({ isOpen, onClose }: TradeFormProps) {
             <Label htmlFor="notes">Notes</Label>
             <Textarea
               id="notes"
-              placeholder="Trade analysis, setup, etc."
               value={formData.notes}
               onChange={(e) => setFormData({...formData, notes: e.target.value})}
               className="bg-gray-800 border-gray-700"
@@ -291,7 +298,6 @@ export default function TradeForm({ isOpen, onClose }: TradeFormProps) {
           <div className="space-y-4">
             <Label>Screenshots</Label>
             
-            {/* Upload Button */}
             <div className="flex flex-col sm:flex-row gap-2">
               <label className="cursor-pointer">
                 <input
@@ -306,7 +312,6 @@ export default function TradeForm({ isOpen, onClose }: TradeFormProps) {
                 </Button>
               </label>
 
-              {/* Image URL Input */}
               <div className="flex flex-1 gap-2">
                 <Input
                   placeholder="Or paste image URL"
@@ -320,7 +325,6 @@ export default function TradeForm({ isOpen, onClose }: TradeFormProps) {
               </div>
             </div>
 
-            {/* Screenshots Preview */}
             {screenshots.length > 0 && (
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                 {screenshots.map((url, index) => (
@@ -354,7 +358,7 @@ export default function TradeForm({ isOpen, onClose }: TradeFormProps) {
               disabled={loading}
               className="bg-gradient-to-r from-green-500 to-emerald-400 text-black hover:from-green-600 hover:to-emerald-500"
             >
-              {loading ? "Adding..." : "Add Trade"}
+              {loading ? "Updating..." : "Update Trade"}
             </Button>
           </div>
         </form>
