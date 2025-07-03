@@ -22,16 +22,16 @@ CREATE POLICY "Users can manage own trading accounts" ON public.trading_accounts
 CREATE POLICY "Admins can view all trading accounts" ON public.trading_accounts
   FOR SELECT USING (public.get_current_user_role() = 'admin');
 
--- Ensure RLS policies exist for dashboard_access (recreate if missing)
-DROP POLICY IF EXISTS "Users can view own access status" ON public.dashboard_access;
-DROP POLICY IF EXISTS "Users can request access" ON public.dashboard_access;
-DROP POLICY IF EXISTS "Admins can manage all access" ON public.dashboard_access;
+-- Ensure RLS policies exist for dashboard_requests (recreate if missing)
+DROP POLICY IF EXISTS "Users can view own access status" ON public.dashboard_requests;
+DROP POLICY IF EXISTS "Users can request access" ON public.dashboard_requests;
+DROP POLICY IF EXISTS "Admins can manage all access" ON public.dashboard_requests;
 
-CREATE POLICY "Users can view own access status" ON public.dashboard_access
+CREATE POLICY "Users can view own access status" ON public.dashboard_requests
   FOR SELECT USING (auth.uid() = user_id);
 
-CREATE POLICY "Users can request access" ON public.dashboard_access
+CREATE POLICY "Users can request access" ON public.dashboard_requests
   FOR INSERT WITH CHECK (auth.uid() = user_id);
 
-CREATE POLICY "Admins can manage all access" ON public.dashboard_access
+CREATE POLICY "Admins can manage all access" ON public.dashboard_requests
   FOR ALL USING (public.get_current_user_role() = 'admin');

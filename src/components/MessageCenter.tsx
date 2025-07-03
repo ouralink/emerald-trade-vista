@@ -18,6 +18,7 @@ interface Message {
   content: string;
   is_read: boolean;
   created_at: string;
+  message_type?: string;
 }
 
 interface MessageCenterProps {
@@ -145,12 +146,12 @@ export default function MessageCenter({ onBack }: MessageCenterProps) {
           </Button>
 
           <Card className="bg-gray-900 border-gray-800">
-            <CardHeader>
-              <CardTitle className="text-green-400">{selectedMessage.subject}</CardTitle>
-              <CardDescription className="text-gray-400">
-                From: Admin • {new Date(selectedMessage.created_at).toLocaleDateString()}
-              </CardDescription>
-            </CardHeader>
+          <CardHeader>
+            <CardTitle className="text-green-400">{selectedMessage.subject}</CardTitle>
+            <CardDescription className="text-gray-400">
+              {selectedMessage.message_type === 'system' ? 'System Notification' : 'From: Admin'} • {new Date(selectedMessage.created_at).toLocaleDateString()}
+            </CardDescription>
+          </CardHeader>
             <CardContent>
               <div className="whitespace-pre-wrap text-gray-200">
                 {selectedMessage.content}
@@ -256,7 +257,7 @@ export default function MessageCenter({ onBack }: MessageCenterProps) {
                         )}
                       </CardTitle>
                       <CardDescription className="text-gray-400">
-                        From: Admin • {new Date(message.created_at).toLocaleDateString()}
+                        {message.message_type === 'system' ? 'System Notification' : 'From: Admin'} • {new Date(message.created_at).toLocaleDateString()}
                       </CardDescription>
                     </div>
                     <Reply className="w-5 h-5 text-gray-500" />

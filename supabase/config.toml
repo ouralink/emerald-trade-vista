@@ -21,8 +21,7 @@ max_client_conn = 100
 
 [realtime]
 enabled = true
-port = 54323
-ip_version = "ipv4"
+ip_version = "IPv4"
 
 [studio]
 enabled = true
@@ -32,24 +31,21 @@ openai_api_key = "env(OPENAI_API_KEY)"
 
 [inbucket]
 enabled = true
-port = 54325
-smtp_port = 54326
-pop3_port = 54327
+port = 54330
+smtp_port = 54332
+ pop3_port = 54331
 
 [storage]
 enabled = true
-port = 54326
 file_size_limit = "50MiB"
-image_transformation = true
+# image_transformation = true
 
 [auth]
 enabled = true
-port = 54327
 site_url = "http://127.0.0.1:3000"
 additional_redirect_urls = ["https://localhost:3000"]
 jwt_expiry = 3600
 enable_signup = true
-enable_email_confirmations = false
 enable_anonymous_sign_ins = false
 
 [auth.email]
@@ -57,10 +53,10 @@ enable_signup = true
 double_confirm_changes = true
 enable_confirmations = false
 
-[edge-runtime]
-enabled = true
-port = 54328
-inspector_port = 54329
+# [edge-runtime]
+# enabled = true
+# port = 54328
+# inspector_port = 54329
 
 [functions.groq-ai]
 verify_jwt = true

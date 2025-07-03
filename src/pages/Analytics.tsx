@@ -45,15 +45,23 @@ export default function Analytics() {
         return;
       }
 
-      // Check if user has dashboard access
-      const { data: access } = await supabase
-        .from('dashboard_access')
+      // Check if user has dashboard access or is admin
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+
+      // Also check for approved dashboard requests as a fallback
+      const { data: approvedRequest } = await supabase
+        .from('dashboard_requests')
         .select('*')
         .eq('user_id', user.id)
+        .eq('request_type', 'analytics_dashboard')
         .eq('status', 'approved')
         .single();
 
-      if (access) {
+      if (profile && profile.role === 'admin' || approvedRequest) {
         setHasAccess(true);
         await fetchStats();
       } else {
@@ -93,13 +101,23 @@ export default function Analytics() {
       if (error) throw error;
 
       // Send message to admin
-      await supabase
-        .from('messages')
-        .insert({
-          sender_id: user.id,
-          content: 'User is requesting access to the advanced analytics dashboard',
-          subject: 'Analytics Dashboard Access Request'
-        });
+      const { data: adminProfile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('role', 'admin')
+        .single();
+      
+      if (adminProfile) {
+        await supabase
+          .from('messages')
+          .insert({
+            sender_id: user.id,
+            receiver_id: adminProfile.id,
+            content: 'User is requesting access to the advanced analytics dashboard',
+            subject: 'Analytics Dashboard Access Request',
+            message_type: 'system'
+          });
+      }
 
       setRequestPending(true);
       toast({

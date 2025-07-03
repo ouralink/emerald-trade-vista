@@ -50,6 +50,7 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     fetchAdminData();
+    fetchDashboardRequests();
   }, []);
 
   const fetchAdminData = async () => {
@@ -73,29 +74,9 @@ export default function AdminDashboard() {
       }
 
       // Fetch dashboard requests
-      const { data: requestsData } = await supabase
-        .from('dashboard_requests')
-        .select('*')
-        .order('created_at', { ascending: false });
+      await fetchDashboardRequests();
 
-      // Get usernames separately
-      if (requestsData) {
-        const enrichedRequests = await Promise.all(
-          requestsData.map(async (req: any) => {
-            const { data: profile } = await supabase
-              .from('profiles')
-              .select('username')
-              .eq('id', req.user_id)
-              .single();
-            
-            return {
-              ...req,
-              profiles: profile || { username: 'Unknown' }
-            };
-          })
-        );
-        setRequests(enrichedRequests);
-      }
+
 
       // Fetch messages
       const { data: messagesData } = await supabase
@@ -134,54 +115,117 @@ export default function AdminDashboard() {
     }
   };
 
-  const approveRequest = async (requestId: string) => {
+  const fetchDashboardRequests = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const { data: requestsData } = await supabase
+        .from('dashboard_requests')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-      await supabase.functions.invoke('admin-dashboard', {
-        body: { 
-          action: 'approve_request',
-          requestId,
-          adminId: user.id
-        }
-      });
-
-      toast({
-        title: "Request approved successfully!",
-      });
-
-      fetchAdminData();
+      if (requestsData) {
+        const enrichedRequests = await Promise.all(
+          requestsData.map(async (req: any) => {
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('username')
+              .eq('id', req.user_id)
+              .single();
+            
+            return {
+              ...req,
+              profiles: profile || { username: 'Unknown' }
+            };
+          })
+        );
+        setRequests(enrichedRequests);
+      }
     } catch (error: any) {
       toast({
-        title: "Error approving request",
+        title: "Error loading dashboard requests",
         description: error.message,
         variant: "destructive",
       });
     }
   };
 
-  const rejectRequest = async (requestId: string) => {
+  const approveRequest = async (requestId: string) => {
+    setLoading(true);
     try {
-      const { error } = await supabase
-        .from('dashboard_requests')
-        .update({ status: 'rejected' })
-        .eq('id', requestId);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: "Error",
+          description: "User not authenticated.",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
 
-      if (error) throw error;
-
-      toast({
-        title: "Request rejected",
+      await supabase.functions.invoke('admin-dashboard', {
+        body: {
+          action: 'approve_request',
+          requestId,
+          adminId: user.id
+        }
       });
 
-      fetchAdminData();
-    } catch (error: any) {
+      fetchDashboardRequests();
       toast({
-        title: "Error rejecting request",
-        description: error.message,
+        title: "Success",
+        description: "Dashboard request approved.",
+      });
+    } catch (error: any) {
+      console.error('Error approving request:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to approve request.",
         variant: "destructive",
       });
     }
+    setLoading(false);
+  };
+
+
+
+
+
+  const rejectRequest = async (requestId: string) => {
+    setLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: "Error",
+          description: "User not authenticated.",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
+      await supabase.functions.invoke('admin-dashboard', {
+        body: {
+          action: 'reject_request',
+          requestId,
+          adminId: user.id
+        }
+      });
+
+      fetchDashboardRequests();
+      toast({
+        title: "Success",
+        description: "Dashboard request rejected.",
+      });
+    } catch (error: any) {
+      console.error('Error rejecting request:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to reject request.",
+        variant: "destructive",
+      });
+    }
+    setLoading(false);
   };
 
   const sendMessage = async () => {

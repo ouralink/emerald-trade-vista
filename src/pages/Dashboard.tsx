@@ -14,7 +14,6 @@ import MoodTracker from "@/components/MoodTracker";
 import MessageCenter from "@/components/MessageCenter";
 import AdminSettings from "@/components/AdminSettings";
 import MoodPrompt from "@/components/MoodPrompt";
-import APIKeySetup from "@/components/APIKeySetup";
 import type { User } from "@supabase/supabase-js";
 
 export default function Dashboard() {
@@ -176,7 +175,6 @@ export default function Dashboard() {
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
-            <APIKeySetup />
             <TradingMetrics />
           </TabsContent>
 

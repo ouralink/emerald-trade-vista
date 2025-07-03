@@ -17,6 +17,17 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    // Check for authorization header
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      throw new Error('Missing authorization header');
+    }
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error } = await supabase.auth.getUser(token);
+    if (error || !user) {
+      throw new Error('Unauthorized');
+    }
+
     const { action, data } = await req.json();
 
     let response;
@@ -35,6 +46,15 @@ serve(async (req) => {
         break;
       case 'approve_request':
         response = await approveRequest(supabase, data.requestId, data.adminId);
+        break;
+      case 'reject_request':
+        response = await rejectRequest(supabase, data.requestId, data.adminId);
+        break;
+      case 'save_api_keys':
+        response = await saveApiKeys(supabase, data.keys);
+        break;
+      case 'save_api_key':
+        response = await saveApiKey(supabase, data.key_type, data.api_key);
         break;
       default:
         throw new Error('Invalid action');
@@ -183,7 +203,91 @@ async function sendMessage(supabase: any, messageData: any) {
   return { success: true };
 }
 
+async function rejectRequest(supabase: any, requestId: string, adminId: string) {
+  // Get the request to find the user_id
+  const { data: request, error: requestError } = await supabase
+    .from('dashboard_requests')
+    .select('user_id')
+    .eq('id', requestId)
+    .single();
+
+  if (requestError) throw requestError;
+
+  // Update the request status
+  const { error } = await supabase
+    .from('dashboard_requests')
+    .update({
+      status: 'rejected',
+      reviewed_by: adminId,
+      reviewed_at: new Date().toISOString()
+    })
+    .eq('id', requestId);
+
+  if (error) throw error;
+
+  // Send notification to user
+  const { error: messageError } = await supabase
+    .from('messages')
+    .insert({
+      sender_id: adminId,
+      receiver_id: request.user_id,
+      subject: 'Analytics Dashboard Access Rejected',
+      content: 'Your request for analytics dashboard access has been rejected. Please contact support for more information.',
+      message_type: 'system'
+    });
+
+  if (messageError) throw messageError;
+
+  return { success: true };
+}
+
+async function saveApiKeys(supabase: any, keys: any[]) {
+  console.log('Saving API keys:', keys);
+  // Save API keys to a secure table or update environment variables
+  const { error } = await supabase
+    .from('api_keys')
+    .upsert(keys.map(key => ({
+      key_type: key.key_type,
+      api_key: key.api_key,
+      updated_at: new Date().toISOString()
+    })), { onConflict: 'key_type' });
+
+  if (error) {
+    console.error('Error saving API keys:', error);
+    throw error;
+  }
+  return { success: true };
+}
+
+async function saveApiKey(supabase: any, keyType: string, apiKey: string) {
+  console.log('Saving API key:', { keyType, apiKey });
+  // Save API key to a secure table or update environment variables
+  const { error } = await supabase
+    .from('api_keys')
+    .upsert({
+      key_type: keyType,
+      api_key: apiKey,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'key_type' });
+
+  if (error) {
+    console.error('Error saving API key:', error);
+    throw error;
+  }
+  return { success: true };
+}
+
 async function approveRequest(supabase: any, requestId: string, adminId: string) {
+  // Get the request to find the user_id
+  const { data: request, error: requestError } = await supabase
+    .from('dashboard_requests')
+    .select('user_id')
+    .eq('id', requestId)
+    .single();
+
+  if (requestError) throw requestError;
+
+  // Update the request status
   const { error } = await supabase
     .from('dashboard_requests')
     .update({
@@ -194,5 +298,27 @@ async function approveRequest(supabase: any, requestId: string, adminId: string)
     .eq('id', requestId);
 
   if (error) throw error;
+
+  // Grant analytics dashboard access to the user
+  const { error: profileError } = await supabase
+    .from('profiles')
+    .update({ has_analytics_access: true })
+    .eq('id', request.user_id);
+
+  if (profileError) throw profileError;
+
+  // Send notification to user
+  const { error: messageError } = await supabase
+    .from('messages')
+    .insert({
+      sender_id: adminId,
+      receiver_id: request.user_id,
+      subject: 'Analytics Dashboard Access Approved',
+      content: 'Your request for analytics dashboard access has been approved. You can now access advanced analytics features.',
+      message_type: 'system'
+    });
+
+  if (messageError) throw messageError;
+
   return { success: true };
 }

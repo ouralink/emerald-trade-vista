@@ -13,13 +13,20 @@ serve(async (req) => {
   }
 
   try {
-    const twelveDataKey = Deno.env.get('TWELVE_DATA_API_KEY');
-    const fredApiKey = Deno.env.get('FRED_API_KEY');
-    const newsApiKey = Deno.env.get('NEWS_API_KEY');
-    
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Fetch API keys from the database
+    const { data: apiKeys, error: apiKeyError } = await supabase
+      .from('api_keys')
+      .select('key_type, api_key');
+
+    if (apiKeyError) throw apiKeyError;
+
+    const twelveDataKey = apiKeys.find(k => k.key_type === 'twelve_data')?.api_key;
+    const fredApiKey = apiKeys.find(k => k.key_type === 'fred')?.api_key;
+    const newsApiKey = apiKeys.find(k => k.key_type === 'news_api')?.api_key;
 
     const { action, data } = await req.json();
 

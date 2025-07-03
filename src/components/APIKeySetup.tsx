@@ -46,8 +46,17 @@ export default function APIKeySetup() {
 
     setLoading(true);
     try {
-      // In a real implementation, this would save to Supabase secrets
-      // For now, we'll show a success message
+      // Save to Supabase
+      const response = await fetch('/api/functions/v1/admin-dashboard', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'save_api_key', key_type: 'twelve_data', api_key: apiKey })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to save API key to Supabase');
+      }
+      
       toast({
         title: "API Key Saved",
         description: "TwelveData API key has been configured. Automatic updates will now work.",

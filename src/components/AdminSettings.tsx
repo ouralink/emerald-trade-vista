@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -30,8 +31,39 @@ export default function AdminSettings({ onBack }: AdminSettingsProps) {
   const handleSave = async () => {
     setLoading(true);
     try {
-      // Here you would typically save to your backend or edge function
-      // For now, we'll just show a success message
+      const formattedKeys = Object.entries(apiKeys).map(([key, value]) => {
+        let key_type = '';
+        switch (key) {
+          case 'TWELVEDATA_API_KEY':
+            key_type = 'twelve_data';
+            break;
+          case 'GROQ_API_KEY':
+            key_type = 'groq';
+            break;
+          case 'FRED_API_KEY':
+            key_type = 'fred';
+            break;
+          case 'NEWS_API_KEY':
+            key_type = 'news_api';
+            break;
+        }
+        return { key_type, api_key: value };
+      });
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('User not authenticated');
+      }
+
+      await fetch('/api/functions/v1/api-key-manager', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({ keys: formattedKeys })
+      });
+
       toast({
         title: "API Keys Updated",
         description: "All API keys have been saved successfully.",
