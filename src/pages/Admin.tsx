@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
 import AdminDashboard from "@/components/AdminDashboard";
 
 export default function Admin() {
@@ -58,5 +60,19 @@ export default function Admin() {
     );
   }
 
-  return <AdminDashboard />;
+  return (
+    <div className="min-h-screen bg-black text-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <Button
+          onClick={() => navigate(-1)}
+          variant="ghost"
+          className="mb-6 text-white hover:bg-gray-800"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back
+        </Button>
+        <AdminDashboard />
+      </div>
+    </div>
+  );
 }

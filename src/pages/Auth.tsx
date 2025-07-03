@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
-import { TrendingUp, Eye, EyeOff } from "lucide-react";
+import { TrendingUp, Eye, EyeOff, ArrowLeft } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 
 export default function Auth() {
@@ -107,6 +107,14 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
+      <Button
+        onClick={() => navigate(-1)}
+        variant="ghost"
+        className="absolute top-4 left-4 z-20 text-white hover:bg-gray-800"
+      >
+        <ArrowLeft className="w-4 h-4 mr-2" />
+        Back
+      </Button>
       <div className="absolute inset-0 bg-gradient-to-br from-black via-gray-900 to-black">
         <div className="absolute inset-0 bg-[linear-gradient(rgba(34,197,94,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(34,197,94,0.1)_1px,transparent_1px)] bg-[size:50px_50px] opacity-20" />
       </div>

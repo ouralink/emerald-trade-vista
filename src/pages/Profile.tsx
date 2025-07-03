@@ -41,6 +41,14 @@ export default function Profile() {
   return (
     <div className="min-h-screen bg-black text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <Button
+          onClick={() => navigate(-1)}
+          variant="ghost"
+          className="mb-6 text-white hover:bg-gray-800"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back
+        </Button>
         <ProfileManager />
       </div>
     </div>
