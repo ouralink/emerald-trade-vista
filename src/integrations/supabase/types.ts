@@ -96,6 +96,7 @@ export type Database = {
           created_at: string | null
           id: string
           is_read: boolean | null
+          message_type: string | null
           receiver_id: string | null
           sender_id: string | null
           subject: string | null
@@ -105,6 +106,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_read?: boolean | null
+          message_type?: string | null
           receiver_id?: string | null
           sender_id?: string | null
           subject?: string | null
@@ -114,6 +116,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_read?: boolean | null
+          message_type?: string | null
           receiver_id?: string | null
           sender_id?: string | null
           subject?: string | null
@@ -158,11 +161,45 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          metadata: Json | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          metadata?: Json | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          metadata?: Json | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
           created_at: string | null
           email: string | null
+          has_analytics_access: boolean | null
           id: string
           role: Database["public"]["Enums"]["user_role"] | null
           updated_at: string | null
@@ -172,6 +209,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string | null
           email?: string | null
+          has_analytics_access?: boolean | null
           id: string
           role?: Database["public"]["Enums"]["user_role"] | null
           updated_at?: string | null
@@ -181,6 +219,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string | null
           email?: string | null
+          has_analytics_access?: boolean | null
           id?: string
           role?: Database["public"]["Enums"]["user_role"] | null
           updated_at?: string | null
@@ -272,6 +311,8 @@ export type Database = {
           id: string
           initial_balance: number
           is_active: boolean | null
+          is_archived: boolean | null
+          last_used_at: string | null
           user_id: string | null
         }
         Insert: {
@@ -283,6 +324,8 @@ export type Database = {
           id?: string
           initial_balance: number
           is_active?: boolean | null
+          is_archived?: boolean | null
+          last_used_at?: string | null
           user_id?: string | null
         }
         Update: {
@@ -294,6 +337,8 @@ export type Database = {
           id?: string
           initial_balance?: number
           is_active?: boolean | null
+          is_archived?: boolean | null
+          last_used_at?: string | null
           user_id?: string | null
         }
         Relationships: []
@@ -345,6 +390,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      auto_archive_unused_accounts: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: string

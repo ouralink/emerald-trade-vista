@@ -14,6 +14,9 @@ import MoodTracker from "@/components/MoodTracker";
 import MessageCenter from "@/components/MessageCenter";
 import AdminSettings from "@/components/AdminSettings";
 import MoodPrompt from "@/components/MoodPrompt";
+import TradingStrategies from "@/components/TradingStrategies";
+import NotificationCenter from "@/components/NotificationCenter";
+import ProfileManager from "@/components/ProfileManager";
 import type { User } from "@supabase/supabase-js";
 
 export default function Dashboard() {
@@ -134,14 +137,30 @@ export default function Dashboard() {
                 <BarChart3 className="w-4 h-4 mr-2" />
                 Analytics
               </Button>
+              <Button 
+                onClick={() => navigate('/economics')}
+                className="bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 text-white"
+              >
+                <TrendingUp className="w-4 h-4 mr-2" />
+                Economics
+              </Button>
               {userProfile?.role === 'admin' && (
-                <Button 
-                  onClick={() => setShowAdminSettings(true)}
-                  className="bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 text-white"
-                >
-                  <Settings className="w-4 h-4 mr-2" />
-                  Settings
-                </Button>
+                <>
+                  <Button 
+                    onClick={() => navigate('/admin')}
+                    className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white"
+                  >
+                    <Settings className="w-4 h-4 mr-2" />
+                    Admin
+                  </Button>
+                  <Button 
+                    onClick={() => setShowAdminSettings(true)}
+                    className="bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 text-white"
+                  >
+                    <Settings className="w-4 h-4 mr-2" />
+                    Settings
+                  </Button>
+                </>
               )}
               <Button onClick={handleSignOut} className="bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 text-white">
                 <LogOut className="w-4 h-4" />
@@ -167,6 +186,10 @@ export default function Dashboard() {
             <TabsTrigger value="trades" className="text-white data-[state=active]:bg-green-600">
               <List className="w-4 h-4 mr-2" />
               Trades
+            </TabsTrigger>
+            <TabsTrigger value="strategies" className="text-white data-[state=active]:bg-green-600">
+              <TrendingUp className="w-4 h-4 mr-2" />
+              Strategies
             </TabsTrigger>
             <TabsTrigger value="mood" className="text-white data-[state=active]:bg-green-600">
               <TrendingUp className="w-4 h-4 mr-2" />
@@ -210,6 +233,10 @@ export default function Dashboard() {
             </div>
 
             <TradesList viewMode={viewMode} />
+          </TabsContent>
+
+          <TabsContent value="strategies" className="space-y-6">
+            <TradingStrategies />
           </TabsContent>
 
           <TabsContent value="mood" className="space-y-6">

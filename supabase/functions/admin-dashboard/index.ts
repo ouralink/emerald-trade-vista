@@ -196,10 +196,25 @@ async function sendMessage(supabase: any, messageData: any) {
       sender_id: messageData.senderId,
       receiver_id: messageData.receiverId,
       subject: messageData.subject,
-      content: messageData.content
+      content: messageData.content,
+      message_type: 'admin'
     });
 
   if (error) throw error;
+
+  // Create notification for the user
+  const { error: notificationError } = await supabase
+    .from('notifications')
+    .insert({
+      user_id: messageData.receiverId,
+      type: 'message',
+      title: 'New message from admin',
+      content: messageData.subject,
+      metadata: { message_id: messageData.id }
+    });
+
+  if (notificationError) console.error('Error creating notification:', notificationError);
+
   return { success: true };
 }
 
@@ -224,6 +239,19 @@ async function rejectRequest(supabase: any, requestId: string, adminId: string) 
     .eq('id', requestId);
 
   if (error) throw error;
+
+  // Create notification for rejection
+  const { error: notificationError } = await supabase
+    .from('notifications')
+    .insert({
+      user_id: request.user_id,
+      type: 'approval',
+      title: 'Analytics Access Rejected',
+      content: 'Your request for analytics dashboard access has been rejected. Please contact support for more information.',
+      metadata: { request_id: requestId }
+    });
+
+  if (notificationError) console.error('Error creating notification:', notificationError);
 
   // Send notification to user
   const { error: messageError } = await supabase
@@ -306,6 +334,19 @@ async function approveRequest(supabase: any, requestId: string, adminId: string)
     .eq('id', request.user_id);
 
   if (profileError) throw profileError;
+
+  // Create notification for approval
+  const { error: notificationError } = await supabase
+    .from('notifications')
+    .insert({
+      user_id: request.user_id,
+      type: 'approval',
+      title: 'Analytics Access Approved',
+      content: 'Your request for analytics dashboard access has been approved. You can now access advanced analytics features.',
+      metadata: { request_id: requestId }
+    });
+
+  if (notificationError) console.error('Error creating notification:', notificationError);
 
   // Send notification to user
   const { error: messageError } = await supabase

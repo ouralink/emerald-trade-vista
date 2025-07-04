@@ -10,6 +10,7 @@ import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
 import Admin from "./pages/Admin";
 import Analytics from "./pages/Analytics";
+import Economics from "./pages/Economics";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,6 +28,7 @@ const App = () => (
           <Route path="/profile" element={<Profile />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/analytics" element={<Analytics />} />
+          <Route path="/economics" element={<Economics />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import { Key, ExternalLink } from "lucide-react";
 
 export default function APIKeySetup() {
@@ -46,15 +47,17 @@ export default function APIKeySetup() {
 
     setLoading(true);
     try {
-      // Save to Supabase
-      const response = await fetch('/api/functions/v1/admin-dashboard', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'save_api_key', key_type: 'twelve_data', api_key: apiKey })
+      // Save to Supabase via admin dashboard function
+      const { data, error } = await supabase.functions.invoke('admin-dashboard', {
+        body: { 
+          action: 'save_api_key', 
+          key_type: 'twelve_data', 
+          api_key: apiKey 
+        }
       });
       
-      if (!response.ok) {
-        throw new Error('Failed to save API key to Supabase');
+      if (error) {
+        throw new Error(error.message || 'Failed to save API key');
       }
       
       toast({
@@ -65,7 +68,7 @@ export default function APIKeySetup() {
     } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to save API key. Please try again.",
+        description: error.message || "Failed to save API key. Please try again.",
         variant: "destructive",
       });
     } finally {
