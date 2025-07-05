@@ -158,7 +158,6 @@ export default function TradesList({ viewMode }: TradesListProps) {
           <div className="flex gap-2">
             <Button
               size="sm"
-              variant="outline"
               className="border-gray-600 text-white hover:bg-gray-700"
               onClick={() => handleEditTrade(trade)}
             >

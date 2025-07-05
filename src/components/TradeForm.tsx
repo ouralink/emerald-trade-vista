@@ -56,6 +56,7 @@ export default function TradeForm({ isOpen, onClose }: TradeFormProps) {
   const [screenshots, setScreenshots] = useState<string[]>([]);
   const [imageUrl, setImageUrl] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -104,10 +105,7 @@ export default function TradeForm({ isOpen, onClose }: TradeFormProps) {
     }
   };
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  const handleImageUpload = async (file: File) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
@@ -135,6 +133,43 @@ export default function TradeForm({ isOpen, onClose }: TradeFormProps) {
         description: error.message,
         variant: "destructive",
       });
+    }
+  };
+
+  const handleFileInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    await handleImageUpload(file);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    
+    const files = Array.from(e.dataTransfer.files);
+    const imageFiles = files.filter(file => file.type.startsWith('image/'));
+    
+    if (imageFiles.length === 0) {
+      toast({
+        title: "Invalid file type",
+        description: "Please drop only image files",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    for (const file of imageFiles) {
+      await handleImageUpload(file);
     }
   };
 
@@ -291,33 +326,46 @@ export default function TradeForm({ isOpen, onClose }: TradeFormProps) {
           <div className="space-y-4">
             <Label>Screenshots</Label>
             
-            {/* Upload Button */}
-            <div className="flex flex-col sm:flex-row gap-2">
+            {/* Drag & Drop Zone */}
+            <div 
+              className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+                isDragging 
+                  ? 'border-green-400 bg-green-400/10' 
+                  : 'border-gray-600 hover:border-gray-500'
+              }`}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+            >
+              <Upload className="w-8 h-8 mx-auto mb-3 text-gray-400" />
+              <p className="text-gray-400 mb-2">
+                {isDragging ? 'Drop images here' : 'Drag & drop images here, or click to select'}
+              </p>
               <label className="cursor-pointer">
                 <input
                   type="file"
                   accept="image/*"
-                  onChange={handleImageUpload}
+                  multiple
+                  onChange={handleFileInputChange}
                   className="hidden"
                 />
-                <Button type="button" variant="outline" className="border-gray-700 text-white hover:bg-gray-800">
-                  <Upload className="w-4 h-4 mr-2" />
-                  Upload Image
+                <Button type="button" variant="outline-green">
+                  Choose Files
                 </Button>
               </label>
+            </div>
 
-              {/* Image URL Input */}
-              <div className="flex flex-1 gap-2">
-                <Input
-                  placeholder="Or paste image URL"
-                  value={imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
-                  className="bg-gray-800 border-gray-700"
-                />
-                <Button type="button" onClick={addImageUrl} variant="outline" className="border-gray-700 text-white hover:bg-gray-800">
-                  <Link2 className="w-4 h-4" />
-                </Button>
-              </div>
+            {/* Image URL Input */}
+            <div className="flex gap-2">
+              <Input
+                placeholder="Or paste image URL"
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+                className="bg-gray-800 border-gray-700"
+              />
+              <Button type="button" onClick={addImageUrl} variant="outline-green">
+                <Link2 className="w-4 h-4" />
+              </Button>
             </div>
 
             {/* Screenshots Preview */}
