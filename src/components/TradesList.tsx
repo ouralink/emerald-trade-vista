@@ -8,6 +8,7 @@ import { Calendar, TrendingUp, TrendingDown, Clock, X, Edit } from "lucide-react
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import EditTradeForm from "./EditTradeForm";
+import TradeCalendar from "./TradeCalendar";
 import { useTwelveDataUpdates } from "@/hooks/useTwelveDataUpdates";
 
 interface Trade {
@@ -200,7 +201,7 @@ export default function TradesList({ viewMode }: TradesListProps) {
             <div>
               <span className="text-gray-400">P&L:</span>
               <p className={`font-semibold ${trade.pnl >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                {trade.pnl >= 0 ? '+' : ''}${trade.pnl.toFixed(2)}
+                {trade.pnl >= 0 ? '+' : ''}${Number(trade.pnl).toFixed(2)}
               </p>
             </div>
           )}
@@ -258,16 +259,7 @@ export default function TradesList({ viewMode }: TradesListProps) {
   }
 
   if (viewMode === 'calendar') {
-    return (
-      <Card className="bg-gray-900 border-gray-800">
-        <CardContent className="p-6">
-          <div className="text-center text-gray-400">
-            <Calendar className="w-12 h-12 mx-auto mb-4" />
-            <p>Calendar view coming soon...</p>
-          </div>
-        </CardContent>
-      </Card>
-    );
+    return <TradeCalendar trades={trades} />;
   }
 
   // List view

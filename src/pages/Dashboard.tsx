@@ -5,11 +5,12 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TrendingUp, PlusCircle, BarChart3, Calendar, List, Grid3X3, LogOut, MessageSquare, User as UserIcon, Settings } from "lucide-react";
+import { TrendingUp, PlusCircle, BarChart3, Calendar, List, Grid3X3, LogOut, MessageSquare, User as UserIcon, Settings, DollarSign } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import TradeForm from "@/components/TradeForm";
 import TradesList from "@/components/TradesList";
 import TradingMetrics from "@/components/TradingMetrics";
+import TradingAccountManager from "@/components/TradingAccountManager";
 import MoodTracker from "@/components/MoodTracker";
 import MessageCenter from "@/components/MessageCenter";
 import AdminSettings from "@/components/AdminSettings";
@@ -183,6 +184,10 @@ export default function Dashboard() {
               <BarChart3 className="w-4 h-4 mr-2" />
               Overview
             </TabsTrigger>
+            <TabsTrigger value="accounts" className="text-white data-[state=active]:bg-green-600">
+              <DollarSign className="w-4 h-4 mr-2" />
+              Accounts
+            </TabsTrigger>
             <TabsTrigger value="trades" className="text-white data-[state=active]:bg-green-600">
               <List className="w-4 h-4 mr-2" />
               Trades
@@ -199,6 +204,10 @@ export default function Dashboard() {
 
           <TabsContent value="overview" className="space-y-6">
             <TradingMetrics />
+          </TabsContent>
+
+          <TabsContent value="accounts" className="space-y-6">
+            <TradingAccountManager />
           </TabsContent>
 
           <TabsContent value="trades" className="space-y-6">
